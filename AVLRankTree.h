@@ -28,11 +28,12 @@ private:
     TreeNode* r_son;
     TreeNode* parent;
     int height;
+    int sub_tree_nodes;
 public:
     //c'tors
     TreeNode() = default;
     explicit TreeNode(T* data):data(data),l_son(nullptr), r_son(nullptr), parent(
-            nullptr),height(1){}
+            nullptr),height(1),sub_tree_nodes(1){}
     //d'tor
     ~TreeNode() {
         if (l_son) {
@@ -77,6 +78,14 @@ public:
         else if (l_son == nullptr) return -(r_son->height);
         else return (l_son->height)-(r_son->height);
     }
+    //update num nodes in sub tree
+    //update num nodes in sub tree
+    void updateNumNodesSub(){
+        sub_tree_nodes = 1;
+        sub_tree_nodes += l_son ? l_son->sub_tree_nodes : 0;
+        sub_tree_nodes += r_son ? r_son->sub_tree_nodes : 0;
+
+    }
     //left rotation
     TreeNode* leftRotation(){
         TreeNode* son_node = r_son;
@@ -89,6 +98,11 @@ public:
         this->parent=son_node;
         updateHeight();
         son_node->updateHeight();
+        if (son_node->l_son)
+            son_node->l_son->updateNumNodesSub();
+        if (son_node->r_son)
+            son_node->r_son->updateNumNodesSub();
+        son_node->updateNumNodesSub();
         return son_node;
     }
     //right rotation
@@ -103,6 +117,11 @@ public:
         this->parent=son_node;
         updateHeight();
         son_node->updateHeight();
+        if (son_node->l_son)
+            son_node->l_son->updateNumNodesSub();
+        if (son_node->r_son)
+            son_node->r_son->updateNumNodesSub();
+        son_node->updateNumNodesSub();
         return son_node;
     }
     //balance
@@ -128,6 +147,7 @@ public:
             r_son = r_son->rightRotation();
             return leftRotation();
         }
+        updateNumNodesSub();
         return this;
     }
     //nodeExists
@@ -318,7 +338,14 @@ public:
         }
     }
 
-
+    T* select(int k){
+        if (l_son->sub_tree_nodes == k-1)
+            return this;
+        else if (l_son->sub_tree_nodes > k-1)
+            return l_son->select(k);
+        else if (l_son->sub_tree_nodes < k-1)
+            return r_son->select(k-l_son->sub_tree_nodes-1);
+    }
 };
 
 template<class T>
@@ -411,6 +438,13 @@ public:
 
     TreeNode<T>* getCurrent(){
         return current;
+    }
+    TreeNode<T>* select(int k){
+        if (root == nullptr || num_of_nodes<k)
+            return nullptr;
+        if (num_of_nodes == 1 && k == 1)
+            return root->getData();
+        return root->selectNode(k);
     }
     void updateCurrent(){
         if (current->getRight() != nullptr){ // traveling right after root
