@@ -1,6 +1,4 @@
-//
-//final
-//
+
 #ifndef DIESEL_LINKEDLIST_H
 #define DIESEL_LINKEDLIST_H
 #include <algorithm>
@@ -12,19 +10,10 @@ public:
     T* data;
     ListNode* next;
     ListNode* prev;
-    bool marked;
-    explicit ListNode(T* data):data(data),next(nullptr),prev(nullptr),marked(false){}
+    explicit ListNode(T* data):data(data),next(nullptr),prev(nullptr){}
     ListNode() = default;
     ~ListNode(){
         delete data;
-    }
-
-    void setMarked(){
-        marked = true;
-    }
-
-    bool getMarked(){
-        return marked;
     }
 };
 
@@ -33,11 +22,10 @@ class LinkedList{
 private:
     int num_of_nodes;
     ListNode<T>* first;
-    ListNode<T>* last;
 
 public:
     //c'tor
-    LinkedList(): num_of_nodes(0),first(nullptr),last(nullptr){}
+    LinkedList(): num_of_nodes(0),first(nullptr){}
     //d'tor
     ~LinkedList(){
        while (first != nullptr){
@@ -58,50 +46,41 @@ public:
     ListNode<T>* getPrevNode(ListNode<T>* node){
         return node->prev;
     }
-    //getLast
-    ListNode<T>* getLastNode(){
-        return last;
-    }
+
     //insert first
     ListNode<T>* InsertFirst(T* data){
         auto node = new ListNode<T>(data);
         if (isEmpty()){
             first = node;
-            last = node;
-            num_of_nodes++;
-            return node;
-        }
-        else
-            return nullptr;
-    }
-    //InsertNode
-    ListNode<T>* InsertNode(ListNode<T>* curNode,T* data){
-        auto node = new ListNode<T>(data);
-
-        if (curNode != last) { //middle
-            curNode->next->prev = node;
-            node->next = curNode->next;
-            curNode->next = node;
-            node->prev = curNode;
-        }
-        else{ //insert last
+            node->prev = nullptr;
             node->next = nullptr;
-            curNode->next = node;
-            node->prev = curNode;
-            last = node;
+        }
+        else{  // there are already some nodes in the linked list
+            node->prev = nullptr;
+            node->next = first;
+            first->prev = node;
+            first = node;
         }
         num_of_nodes++;
         return node;
     }
 
-
-    //removeNode: can only remove middle nodes or last node
+    //removeNode
     void removeNode (ListNode<T>* node){
-        if (node == first){ //it is illegal to delete first node
+        if (node == first){ //delete first node
+            if (!node->next){ //if it is the only node in the list
+                delete node;
+                first = nullptr;
+            }
+            else{
+                node->next->prev = nullptr;
+                first = node->next;
+                delete node;
+            }
+            num_of_nodes--
             return;
         }
-        else if (node == last){ //delete last node
-            last = node->prev;
+        else if (node->next == nullptr){ //delete last node
             node->prev->next = nullptr;
             delete node;
             num_of_nodes--;
@@ -117,6 +96,19 @@ public:
    //IsEmpty
    bool isEmpty(){
        return (!first);
+    }
+
+    ListNode<T>* FindNode (T* data){
+        ListNode<T>* search_node = getFirstNode();
+        while (search_node->next != nullptr){
+            if (search_node->data == data){
+                return search_node;
+            }
+            else{
+                search_node = search_node->next;
+            }
+        }
+        return nullptr;
     }
 };
 #endif //DIESEL_LINKEDLIST_H
